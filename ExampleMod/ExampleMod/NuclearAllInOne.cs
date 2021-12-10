@@ -17,17 +17,17 @@ namespace CultOfClang.NuclearReactor
     {
         public new static ILocFile _locFile = Loc.GetFile("NuclearAllInOne");
         private bool _detonated;
-        const float MultiplyerPowerDensity = 100; // normal is 15 real can do 100mw/m^3
-        const float HeatPerVolume = 40;
-        private static float ExplosionDamage { get; } = 500000f;
+        const float MultiplyerPowerDensity = 10; // down to 10 from 100 so it should only count as 10 of the 3x3x3 RTG's if anything, for 4,050 electricity per second
+        const float HeatPerVolume = 60; // bumped this up from 40 to 60
+        private static float ExplosionDamage { get; } = 250000f; // a nuclear reactor isn't designed to explode, but it should still be explodey for balance purposes, these stats are still a really good deal for the user
         private static float ExplosionRadius { get; } = PayloadDerivedValues.GetExplosionRadius(ExplosionDamage);
         public float RtgVolume => MultiplyerPowerDensity * (float)this.item.SizeInfo.ArrayPositionsUsed;
-        public float SteamPerSecond => 1000 * (float)this.item.SizeInfo.ArrayPositionsUsed;
+        public float SteamPerSecond => 1600 * (float)this.item.SizeInfo.ArrayPositionsUsed; // 1600 is just for my interpretation/fork. I figure my fork of the boiler should be 5x5x5, so that'd be 125 cubes, and 125x1600 is 200,000, and that's a nice number for 1 nuclear boiler for what I want to do with it. that's 40 steam-jets operating at max capacity
 
         protected override void AppendToolTip(ProTip tip)
         {
             base.AppendToolTip(tip);
-            tip.SetSpecial_Name(RTG._locFile.Get("SpecialName", "Simple Reactor", true), RTG._locFile.Get("SpecialDescription", "Nuclar Boiler generates endless steam using the power of the atom", true));
+            tip.SetSpecial_Name(RTG._locFile.Get("SpecialName", "Simple Nuclear Boiler", true), RTG._locFile.Get("SpecialDescription", "Nuclear Boiler, generates endless steam using the power of the atom!", true)); //typo corrections and a name change
             tip.InfoOnly = true;
             tip.Add(Position.Middle, RTG._locFile.Format("Return_CreatesEnergyPer", "Creates <<{0} steam per second>>", SteamPerSecond));
             if (this.StorageModule != null)
@@ -82,11 +82,11 @@ namespace CultOfClang.NuclearReactor
 
         private void Update(ISectorTimeStep obj)
         {
-            //this.GetConstructableOrSubConstructable().MainThreadRotation = Quaternion.identity;
+            this.GetConstructableOrSubConstructable().MainThreadRotation = Quaternion.identity;
             var steam = obj.DeltaTime * SteamPerSecond;
             this.StorageModule.AddSteam(steam);
             this.Stats.BoilerSteamCreated.Add(steam);
-            if (StorageModule.Pressure > 9)
+            if (StorageModule.Pressure =< 2) //what if it explodes when there's a major leak?? That'd give players a reason to fortify their steam pipe network!
                 Detonate();
         }
     }
